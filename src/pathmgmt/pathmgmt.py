@@ -1,0 +1,36 @@
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+DATA_DIR = BASE_DIR/'data'
+LOG_DIR = BASE_DIR/'log'
+ALPHA_DIR = DATA_DIR/'alphas'
+PLOT_DIR = BASE_DIR/'plot'
+
+DATA_MAPPING = {"PV Basics": '1minProcess',
+           "Cum Adj Factor": "adj_fct",
+           "Index": 'idx',
+           "Limits": "lmt",
+           "Market Value": "mkt_val",
+           "Sector": "sw",
+           "Universe": "univ",
+           "Trading Halt": 'dateProcess',
+           "ST Stocks": 'dateProcess',
+           }
+
+def getfilePath(tab_name, **kwargs):
+    if tab_name in ["Index", "Cum Adj Factor", "Limits", "Market Value", "Sector"]:
+        return DATA_DIR/DATA_MAPPING[tab_name]/kwargs['date'][:4]/(kwargs['date']+'.csv')
+    elif tab_name == "Universe":
+        return DATA_DIR/DATA_MAPPING[tab_name]/kwargs['indexName']/kwargs['date'][:4]/(kwargs['date']+'.csv')
+    elif tab_name == "PV Basics":
+        return DATA_DIR/DATA_MAPPING[tab_name]/(kwargs['date']+'.csv')
+    elif tab_name in ["Trading Halt", "ST Stocks"]:
+        return DATA_DIR/DATA_MAPPING[tab_name]/(tab_name +'.csv')
+    elif 'alpha' in tab_name:
+        return ALPHA_DIR/tab_name.split('.')[-1]/(kwargs['date'] + '.csv')
+
+def makeLogPath(dt_string, name):
+    date = dt_string.strftime("%Y%m%d")
+    timestamp = dt_string.strftime("%Y%m%d%H%M%S")
+    (LOG_DIR/date/name).mkdir(parents=True, exist_ok=True)
+    return LOG_DIR/date/name/(timestamp+".log")
