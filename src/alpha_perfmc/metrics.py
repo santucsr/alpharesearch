@@ -70,9 +70,6 @@ def compute_matrics(positions, tab_name, start, end, universe, holding_period):
     
     # return daily_pnl, statistics
     
-def maxdrawdown(pnl):
-    pass
-
 def plot(tab_name, daily_pnl, statistics):
     # pnl plot
     fig, ax = plt.subplots(1, 1, figsize=(16, 12))
