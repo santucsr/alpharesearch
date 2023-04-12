@@ -13,8 +13,8 @@ DATA_MAPPING = {"PV Basics": '1minProcess',
            "Market Value": "mkt_val",
            "Sector": "sw",
            "Universe": "univ",
-           "Trading Halt": 'dateProcess',
-           "ST Stocks": 'dateProcess',
+           "Trading Halt": 'halt_date',
+           "ST Stocks": 'ST_date',
            }
 
 def getfilePath(tab_name, **kwargs):
@@ -25,7 +25,7 @@ def getfilePath(tab_name, **kwargs):
     elif tab_name == "PV Basics":
         return DATA_DIR/DATA_MAPPING[tab_name]/(kwargs['date']+'.csv')
     elif tab_name in ["Trading Halt", "ST Stocks"]:
-        return DATA_DIR/DATA_MAPPING[tab_name]/(tab_name +'.csv')
+        return DATA_DIR/'dateProcess'/(DATA_MAPPING[tab_name] + '.csv')
     elif 'alpha' in tab_name:
         return ALPHA_DIR/tab_name.split('.')[-1]/(kwargs['date'] + '.csv')
 

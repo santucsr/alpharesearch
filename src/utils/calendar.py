@@ -32,3 +32,5 @@ def readCalendar():
 
 
 CALENDAR = readCalendar()
+START = '20180101'
+END = '20201231'
