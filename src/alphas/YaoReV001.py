@@ -1,7 +1,7 @@
-# Momentum 001: N day return.
+# Mean Reversion 001: minus N day return. (mirror Momentum 001, just flip the sign)
 # We define the N day return at T0 to be return from T-(N+1) to T-1, following delay 1 scheme
 
-# 
+#
 from datetime import datetime
 from functools import partial
 import logging
@@ -23,22 +23,16 @@ from logger import logger as myLogger
 logger = myLogger.Logger(__name__)
 logger.init(console_handler=True)
 
-class YaoMoM001():
-    # this way cannot handle multiprocessing?
-    # cur_adjf = pd.DataFrame()
-    # population = defaultdict(pd.Dataframe)
-    
-    # better create a global variable for all common data?
-    
+class YaoReV001():
     def __init__(self, args_dict):
-        self.__name = 'YaoMoM001'
+        self.__name = 'YaoReV001'
         self.__universe = args_dict['universe']
         self.__start = args_dict['start_date']
         self.__end = args_dict['end_date']
         self.__window = args_dict['window']
         # self.__delay = args_dict['delay'] # Delay 0? Delay 1?
         self.__refresh = True if 'refresh' not in args_dict else args_dict['refresh']
-        
+
     def __compute_return(self, x):
         '''function to compute lag return'''
         return np.log(x.shift(1)) - np.log(x.shift(1 + self.__window))
@@ -46,13 +40,13 @@ class YaoMoM001():
     def __compute_future_return(self, x):
         '''Delay 1: return from T+0 to T+1'''
         return np.log(x.shift(-1)) - np.log(x)
-    
+
     def compute(self):
         logger().debug("Loading Cumulative Adjust Factor...")
         cum_adjf = dataloader.loading(
             'Cum Adj Factor', start=self.__start, end=self.__end, fields=['code', 'cum_adjf'])
         logger().debug("Loading Cumulative Adjust Factor...Done!")
-       
+
         logger().debug("Loading Universe...")
         population = dataloader.loading(
             "Universe", start=self.__start, end=self.__end, fields=self.__universe)
@@ -76,9 +70,9 @@ class YaoMoM001():
         # adj close
         stocks['adj_close'] = stocks['close'] * stocks['cum_adjf']
 
-        stocks['alpha'] = stocks.groupby(
+        stocks['alpha'] = -stocks.groupby(
             'code').adj_close.apply(self.__compute_return)
-        
+
         stocks['fut_ret_1d'] = stocks.groupby(
             'code').adj_close.apply(self.__compute_future_return)
 
@@ -93,9 +87,9 @@ class YaoMoM001():
         tableName = f"{self.__name}-{self.__window}days-{self.__universe}"
         tableDir = myPath.ALPHA_DIR/tableName
         tableDir.mkdir(parents=True, exist_ok=True)
-        
+
         logger().debug(f"Start writing to files for alpha {tableName}...")
-        
+
         for date in dates:
             outputfile = myPath.ALPHA_DIR/tableName/(date+'.csv')
             if outputfile.exists() and not self.__refresh:
@@ -109,5 +103,5 @@ class YaoMoM001():
             except:
                 logger().error(
                     f"Exception when Writing to file on date {date} for alpha {tableName}")
-                
+
         logger().debug("Writing to files...Done!")

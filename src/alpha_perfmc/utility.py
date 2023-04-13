@@ -17,7 +17,7 @@ def transform(alphas, method='None'):
         return alphas
     elif method == 'Rank':
         alphas['alpha'] = alphas.groupby('time').alpha.transform(
-            lambda x: x.sort_values(ascending=True).rank(ascending=True, method="max"))
+            lambda x: x.rank(ascending=True, method="average"))
         return alphas
     else:
         logger().exception(f"Not Implemented for transformation method {method}")
@@ -55,7 +55,7 @@ def neutralization_sector_only(alphas):
         df['weights'] = df['alpha'] - df['sector_alpha_mean']
         df['weights'] = df['weights'] / df.weights.abs().sum() * 2
         return df
-    alphas = alphas.groupby('time').apply(helper)
+    alphas = alphas.groupby('time').apply(helper).set_index('time')
     return alphas
 
 def neutralization_sector_and_marketcap(alphas):
@@ -88,7 +88,7 @@ def neutralization_sector_and_marketcap(alphas):
         df['weights'] = df['alpha'] - df['sector_weighted_zscores']
         df['weights'] = df['weights'] / df.weights.abs().sum() * 2
         return df
-    alphas = alphas.groupby('time').apply(helper)
+    alphas = alphas.groupby('time').apply(helper).set_index('time')
     return alphas
 
 def halt_adjustment(alphas):
@@ -102,13 +102,17 @@ def halt_adjustment(alphas):
         'weights', 'prev_weights']].fillna(value=0)
     alphas = pd.merge(alphas.reset_index(), halt_info.reset_index(), left_on=[
                     'time', 'code', 'name'], right_on=['date', 'code', 'name'], how='left')
-    alphas = alphas.groupby('time').apply(halt_adjustment_helper)
+    alphas = alphas.groupby('time').apply(halt_adjustment_helper).set_index('time')
     # check after adjustment all positive weights sum to 1
     # alphas.groupby('time').apply(
     #     lambda x: x.loc[x.weights > 0, 'weights'].sum()).value_counts()
     return alphas
     
 def halt_adjustment_helper(df):
+    '''ensure that \sum w_i = 1, for all w_i > 0; \sum w_i = -1, for all w_i = -1
+    consider trading halts, freeze w_i for each stock i that halts on the day
+    then we need \sum w_i = 1 - x, for all w_i > 0, where x is the sum of all positive weights from previous date that halt today
+    \sum w_i = -1 - y, for all w_i < 0, where y is the sum of all negative weights from previous date that halt today'''
     # before freezing
     x0 = df.loc[(~df.date.isna()) & (df.weights > 0), 'weights'].sum()
     y0 = df.loc[(~df.date.isna()) & (df.weights < 0), 'weights'].sum()

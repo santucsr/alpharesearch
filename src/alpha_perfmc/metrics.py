@@ -95,5 +95,26 @@ def plot(tab_name, daily_pnl, statistics, start, end, transform, neutralize):
     daily_pnl.to_csv(myPath.PLOT_DIR/tab_name /
                      f'{start}-{end}-{transform}-{neutralize}-dailyPnL.csv')
 
-def stratified_model():
-    pass
+def stratified_model(positions, tab_name, start, end, universe, transform, neutralize):
+    alphas_copy = positions[['code', 'name', 'alpha', 'fut_ret_1d']].copy().dropna().reset_index()
+    alphas_copy['decile'] = alphas_copy.groupby('time')['alpha'].transform(
+        lambda x: pd.qcut(x, q=10, labels=range(1, 11)))
+    # equally weighted within each bucket
+    daily_pnl_stratified = alphas_copy.groupby(['decile', 'time']).fut_ret_1d.mean(
+    ).to_frame().reset_index().set_index('time').pivot(columns='decile', values='fut_ret_1d')
+    # save
+    # daily_pnl_stratified
+    (myPath.PLOT_DIR/tab_name).mkdir(parents=True, exist_ok=True)
+    daily_pnl_stratified.to_csv(myPath.PLOT_DIR/tab_name /
+                     f'{start}-{end}-{transform}-{neutralize}-stratifiedPnL.csv')
+    # plot
+    daily_pnl_stratified = daily_pnl_stratified.cumsum()
+    fig, ax = plt.subplots(1, 1, figsize=(16, 12))
+    cmap = plt.get_cmap('tab10')
+    for i, col in enumerate(daily_pnl_stratified.columns):
+        ax.plot(daily_pnl_stratified[col],
+                color=cmap(i), label=f'decile {col}')
+    plt.legend()
+    ax.set_title(f'Stratified PnL for {tab_name} from {start} to {end}')
+    plt.savefig(myPath.PLOT_DIR/tab_name /
+                f'{start}-{end}-{transform}-{neutralize}-Stratified.png')

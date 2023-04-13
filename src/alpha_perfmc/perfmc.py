@@ -1,4 +1,3 @@
-
 from multiprocessing import Pool
 
 from alpha_perfmc import calculator
