@@ -71,8 +71,10 @@ class YaoMoM001():
                                             on=['time', 'code'], how='left').set_index('time')
 
         # select stocks in the universe
-        stocks = stocks.reset_index().merge(population.reset_index(),
-                                            on=['time', 'code'], how='inner').set_index('time')
+        # select universe here can cause a problem: change of universe would exclude some stocks unintentionally
+        # stocks = stocks.reset_index().merge(population.reset_index(),
+        #                                     on=['time', 'code'], how='inner').set_index('time')
+        
         # adj close
         stocks['adj_close'] = stocks['close'] * stocks['cum_adjf']
 
@@ -81,8 +83,16 @@ class YaoMoM001():
         
         stocks['fut_ret_1d'] = stocks.groupby(
             'code').adj_close.apply(self.__compute_future_return)
-
+        
+        # select stocks in the universe
+        stocks = stocks.reset_index().merge(population.reset_index(),
+                                            on=['time', 'code'], how='inner').set_index('time')
+        
+        # purging the first windows date
         dates = [d.strftime("%Y%m%d") for d in stocks.index.unique()]
+        dates.sort()
+        dates = dates[(self.__window):]
+        
         # ERROR: daemonic processes are not allowed to have children
         # with Pool() as pool:
         #     pool.map(partial(writeToFile, stocks, tableName, refresh),

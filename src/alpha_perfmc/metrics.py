@@ -12,35 +12,49 @@ INDEX_MAPPING = {'hs300': '沪深300',
                  'zz800': '中证800',
                  'zz1000': '中证1000', }
 
-def compute_matrics(positions, tab_name, start, end, universe, transform, neutralize):
-    daily_pnl = positions.reset_index().groupby('time').pnl.sum().to_frame()
 
+def compute_matrics(positions, tab_name, start, end, universe, transform, neutralize, holding):
+    # print(positions.reset_index().groupby('time').pnl.sum().to_frame())
+    daily_pnl = positions.reset_index().groupby('time').pnl.sum().to_frame()
+    
+    long_only = positions.reset_index().groupby('time').long_pnl.sum().to_frame()['long_pnl']
+    daily_pnl = daily_pnl.reset_index().merge(long_only.reset_index(),
+                                        on=['time'], how='left').set_index('time')
+
+    # daily_pnl['long_pnl'] = positions.reset_index().groupby(
+    #     'time').long_pnl.sum().to_frame()['long_pnl']
+    
     # load benchmark price
     if universe in INDEX_MAPPING:
         universe = INDEX_MAPPING[universe]
     benchmark = dataloader.loading(
         tab_name="Index", start=start, end=end, fields=['code', 'name', 'close'])
     
+    benchmark = benchmark.loc[daily_pnl.index[1]:]
     # compute benchmark daily return 
     daily_pnl['benchmark_ret'] = benchmark.loc[benchmark.name == universe].close.transform(
         lambda x: np.log(x.shift(-1)) - np.log(x))
+    daily_pnl['benchmark_ret'] = daily_pnl['benchmark_ret'].fillna(0)
+    # print(daily_pnl)
     
     # cumulative pnl
     daily_pnl['cum_pnl'] = daily_pnl['pnl'].cumsum()
+    daily_pnl['cum_long_pnl'] = daily_pnl['long_pnl'].cumsum()
     daily_pnl['cum_benchmark_ret'] = daily_pnl['benchmark_ret'].cumsum()
+    # print(daily_pnl)
     
     # excess return 
-    daily_pnl['excess_ret'] = daily_pnl['pnl'] - daily_pnl['benchmark_ret']
-    daily_pnl['cum_excess_ret'] = daily_pnl['cum_pnl'] - daily_pnl['cum_benchmark_ret']
+    daily_pnl['excess_ret'] = daily_pnl['long_pnl'] - daily_pnl['benchmark_ret']
+    daily_pnl['cum_excess_ret'] = daily_pnl['cum_long_pnl'] - daily_pnl['cum_benchmark_ret']
     
     # annualized return 
     annual_ret = daily_pnl.pnl.mean() * 252
     # annualized excess return
     annual_excess_ret = daily_pnl.excess_ret.mean() * 252
-    # information ratio
-    ir1 = daily_pnl.excess_ret.mean() / daily_pnl.excess_ret.std() * np.sqrt(252)
-    # raw information raio, not compared to benchmark
-    ir2 = daily_pnl.pnl.mean() / daily_pnl.pnl.std() * np.sqrt(252)
+    # information ratio, long only
+    ir2 = daily_pnl.excess_ret.mean() / daily_pnl.excess_ret.std() * np.sqrt(252)
+    # information raio, not compared to benchmark
+    ir1 = daily_pnl.pnl.mean() / daily_pnl.pnl.std() * np.sqrt(252)
     # information coefficient
     # position weights vs 1d return 
     ic = positions.reset_index().groupby('time')[[f'fut_ret_1d', 'weights']].corr().iloc[0::2, -1].mean()
@@ -55,58 +69,66 @@ def compute_matrics(positions, tab_name, start, end, universe, transform, neutra
     statistics = {'Annualized Return': annual_ret, 
                   'Annualized Excess Return': annual_excess_ret, 
                   'IR': ir1, 
-                  'raw IR': ir2,
+                  'IR long only': ir2,
                   'IC': ic, 
                   'Max Drawdown': max_drawdown,
-                  'Max Drawdown (excess)': max_drawdown_excess,
-                  'Total Turnover': turnover}
+                  'Max Drawdown long only': max_drawdown_excess,
+                  'daily Turnover': turnover}
     
     # plot the performance metrics
-    plot(tab_name, daily_pnl, statistics, start, end, transform, neutralize)
+    plot(tab_name, daily_pnl, statistics, start, end, transform, neutralize, holding)
     
     # return daily_pnl, statistics
     
-def plot(tab_name, daily_pnl, statistics, start, end, transform, neutralize):
+
+def plot(tab_name, daily_pnl, statistics, start, end, transform, neutralize, holding):
     # pnl plot
     fig, ax = plt.subplots(1, 1, figsize=(16, 12))
     fig.autofmt_xdate(rotation=45)
     ax.plot(daily_pnl[['cum_pnl', 'cum_benchmark_ret', 'cum_excess_ret']], label=[
             'cumulative return', 'benchmark return', 'cumulative excess return'])
     ax.legend()
-    ax.set_title(f'PnL for {tab_name} from {start} to {end}')
+    ax.set_title(f'PnL for {tab_name} from {start} to {end} with holding period {holding} days')
     plt.figtext(.95, .49, pd.DataFrame(
-        data=["{:.3%}".format(v) if k not in ['IR', 'raw IR'] else "{:.3}".format(v)
+        data=["{:.3%}".format(v) if k not in ['IR', 'IR long only'] else "{:.3}".format(v)
             for k, v in statistics.items()],
         index=statistics.keys())[0].to_string(),
         {'multialignment': 'right', 'fontsize': 12})
-    (myPath.PLOT_DIR/tab_name).mkdir(parents=True, exist_ok=True)
-    plt.savefig(myPath.PLOT_DIR/tab_name/f'{start}-{end}-{transform}-{neutralize}-PnL.png', bbox_inches='tight')
+    (myPath.PLOT_DIR/tab_name/'PnL_plot').mkdir(parents=True, exist_ok=True)
+    plt.savefig(myPath.PLOT_DIR/tab_name/'PnL_plot'/
+                f'{start}-{end}-{transform}-{neutralize}-holding{holding}days-PnL.png', bbox_inches='tight')
     # turnover plot
     fig, ax = plt.subplots(1, 1, figsize=(16, 12))
     fig.autofmt_xdate(rotation=45)
     ax.plot(daily_pnl['turnover'], label='daily turnover')
     ax.legend()
-    ax.set_title(f'Daily Turnover for {tab_name} from {start} to {end}')
-    (myPath.PLOT_DIR/tab_name).mkdir(parents=True, exist_ok=True)
-    plt.savefig(myPath.PLOT_DIR/tab_name/
+    ax.set_title(f'Daily Turnover for {tab_name} from {start} to {end} with holding period {holding} days')
+    (myPath.PLOT_DIR/tab_name/'Turnover_plot').mkdir(parents=True, exist_ok=True)
+    plt.savefig(myPath.PLOT_DIR/tab_name/'Turnover_plot'/
                 f'{start}-{end}-{transform}-{neutralize}-Turnover.png', bbox_inches='tight')
 
     # save daily pnl
-    daily_pnl.to_csv(myPath.PLOT_DIR/tab_name /
-                     f'{start}-{end}-{transform}-{neutralize}-dailyPnL.csv')
+    (myPath.PLOT_DIR/tab_name/'PnL_results').mkdir(parents=True, exist_ok=True)
+    daily_pnl.to_csv(myPath.PLOT_DIR/tab_name/'PnL_results'/
+                     f'{start}-{end}-{transform}-{neutralize}-holding{holding}days-dailyPnL.csv')
 
-def stratified_model(positions, tab_name, start, end, universe, transform, neutralize):
+    # save statistics to file
+    (myPath.PLOT_DIR/tab_name/'statistics').mkdir(parents=True, exist_ok=True)
+    pd.DataFrame(data=statistics, index=[0]).to_csv(myPath.PLOT_DIR/tab_name/'statistics'/
+                                                      f'{start}-{end}-{transform}-{neutralize}-holding{holding}days-statistics.csv', index=False)
+    
+def stratified_model(positions, tab_name, start, end, universe, transform, neutralize, holding):
     alphas_copy = positions[['code', 'name', 'alpha', 'fut_ret_1d']].copy().dropna().reset_index()
     alphas_copy['decile'] = alphas_copy.groupby('time')['alpha'].transform(
         lambda x: pd.qcut(x, q=10, labels=range(1, 11)))
     # equally weighted within each bucket
     daily_pnl_stratified = alphas_copy.groupby(['decile', 'time']).fut_ret_1d.mean(
-    ).to_frame().reset_index().set_index('time').pivot(columns='decile', values='fut_ret_1d')
+        ).to_frame().reset_index().set_index('time').pivot(columns='decile', values='fut_ret_1d')
     # save
     # daily_pnl_stratified
-    (myPath.PLOT_DIR/tab_name).mkdir(parents=True, exist_ok=True)
-    daily_pnl_stratified.to_csv(myPath.PLOT_DIR/tab_name /
-                     f'{start}-{end}-{transform}-{neutralize}-stratifiedPnL.csv')
+    (myPath.PLOT_DIR/tab_name/'stratified_results').mkdir(parents=True, exist_ok=True)
+    daily_pnl_stratified.to_csv(myPath.PLOT_DIR/tab_name/'stratified_results'/
+                                f'{start}-{end}-{transform}-{neutralize}-holding{holding}days-stratifiedPnL.csv')
     # plot
     daily_pnl_stratified = daily_pnl_stratified.cumsum()
     fig, ax = plt.subplots(1, 1, figsize=(16, 12))
@@ -115,6 +137,7 @@ def stratified_model(positions, tab_name, start, end, universe, transform, neutr
         ax.plot(daily_pnl_stratified[col],
                 color=cmap(i), label=f'decile {col}')
     plt.legend()
-    ax.set_title(f'Stratified PnL for {tab_name} from {start} to {end}')
-    plt.savefig(myPath.PLOT_DIR/tab_name /
-                f'{start}-{end}-{transform}-{neutralize}-Stratified.png')
+    ax.set_title(f'Stratified PnL for {tab_name} from {start} to {end} with holding period {holding} days')
+    (myPath.PLOT_DIR/tab_name/'stratified_plot').mkdir(parents=True, exist_ok=True)
+    plt.savefig(myPath.PLOT_DIR/tab_name/'stratified_plot'/
+                f'{start}-{end}-{transform}-{neutralize}-holding{holding}days-Stratified.png')
