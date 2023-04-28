@@ -17,16 +17,16 @@ if __name__ == "__main__":
     #                                         'longTerm': long_term,
     #                                     'universe': 'zz1000',
     #                                     'refresh': True}))
-        cfg_list.append(('YaoReV007', {'start_date': '20180101',
+        cfg_list.append(('YaoReV005', {'start_date': '20180101',
                                     'end_date': '20201231',
                                         'window': delay,
                                     'universe': 'zz1000',
                                     'refresh': True}))
-        cfg_list.append(('YaoMoM007', {'start_date': '20180101',
-                            'end_date': '20201231',
-                                'window': delay,
-                            'universe': 'zz1000',
-                            'refresh': True}))
+        # cfg_list.append(('YaoMoM007', {'start_date': '20180101',
+        #                     'end_date': '20201231',
+        #                         'window': delay,
+        #                     'universe': 'zz1000',
+        #                     'refresh': True}))
                 # ('YaoReV002', {'start_date': '20180101',
                 #                'end_date': '20201231',
                 #                'shortTerm': 5,
@@ -75,17 +75,17 @@ if __name__ == "__main__":
                 'start_date': '20180101',
                 'end_date': '20201231',
                 'transform': 'Rank',
-                'neutralize': 'Industry',
+                'neutralize': 'Industry_with_weighted_cap',
                 'holding': holdings
             })            
-            args_dict_list.append({
-                'table_name': f'alpha.YaoMoM007-{delay}days-zz1000',
-                'start_date': '20180101',
-                'end_date': '20201231',
-                'transform': 'Rank',
-                'neutralize': 'Industry',
-                'holding': holdings
-            })
+            # args_dict_list.append({
+            #     'table_name': f'alpha.YaoMoM007-{delay}days-zz1000',
+            #     'start_date': '20180101',
+            #     'end_date': '20201231',
+            #     'transform': 'Rank',
+            #     'neutralize': 'Industry',
+            #     'holding': holdings
+            # })
             # args_dict_list.append({
             #     'table_name': f'alpha.YaoReV004-{delay}days-zz1000',
             #     'start_date': '20180101',
