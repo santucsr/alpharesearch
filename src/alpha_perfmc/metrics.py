@@ -27,6 +27,8 @@ def compute_matrics(positions, tab_name, start, end, universe, transform, neutra
     # load benchmark price
     if universe in INDEX_MAPPING:
         universe = INDEX_MAPPING[universe]
+    else: # e.g., zz9999
+        universe = '沪深300'
     benchmark = dataloader.loading(
         tab_name="Index", start=start, end=end, fields=['code', 'name', 'close'])
     
@@ -105,7 +107,7 @@ def plot(tab_name, daily_pnl, statistics, start, end, transform, neutralize, hol
     ax.set_title(f'Daily Turnover for {tab_name} from {start} to {end} with holding period {holding} days')
     (myPath.PLOT_DIR/tab_name/'Turnover_plot').mkdir(parents=True, exist_ok=True)
     plt.savefig(myPath.PLOT_DIR/tab_name/'Turnover_plot'/
-                f'{start}-{end}-{transform}-{neutralize}-Turnover.png', bbox_inches='tight')
+                f'{start}-{end}-{transform}-{neutralize}-holding{holding}days-Turnover.png', bbox_inches='tight')
 
     # save daily pnl
     (myPath.PLOT_DIR/tab_name/'PnL_results').mkdir(parents=True, exist_ok=True)

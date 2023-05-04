@@ -51,10 +51,11 @@ class PnLCalculator():
             self.__alpha, self.__name, self.__start, self.__end, self.__universe, self.__transform, self.__neutralize, self.__holding)
         logger().debug("computing metrics and recording...Done!")
         
-        logger().debug("computing stratified PnL and recording...")
-        metrics.stratified_model(
-            self.__alpha, self.__name, self.__start, self.__end, self.__universe, self.__transform, self.__neutralize, self.__holding)
-        logger().debug("computing stratified PnL and recording...Done!")
+        # logger().debug("computing stratified PnL and recording...")
+        # metrics.stratified_model(
+        #     self.__alpha, self.__name, self.__start, self.__end, self.__universe, self.__transform, self.__neutralize, self.__holding)
+        # logger().debug("computing stratified PnL and recording...Done!")
+        
         # daily_pnl, statistics = metrics.compute_matrics(
         #     positions, tab_name, start, end, universe, holding_period)
 

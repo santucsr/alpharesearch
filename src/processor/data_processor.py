@@ -18,7 +18,7 @@ from tqdm.auto import tqdm
 
 # Local Library imports
 from pathmgmt import pathmgmt as myPath
-from .pv_basics import process1min
+from .pv_basics import process1min, processConsistentVolume, processConsistentBuySell
 from utils.calendar import CALENDAR
 
 logFormatter = logging.Formatter(
@@ -32,7 +32,7 @@ fileHandler.setFormatter(logFormatter)
 logger.addHandler(fileHandler)
 logger.setLevel(logging.DEBUG)
 
-def process1minFiles(input, output, refresh=False):
+def process1minFiles(input, output, func, refresh=False):
     '''Here we would define the information we wanted to extract from raw 1min data
     TODO: we can add more columns/features at later stage
     '''
@@ -40,13 +40,13 @@ def process1minFiles(input, output, refresh=False):
     # create the folder/table the first time if note exists
     (myPath.DATA_DIR/output).mkdir(parents=True, exist_ok=True)
     with Pool() as pool:                        
-        pool.map(partial(process1minOneFile, output, refresh), (myPath.DATA_DIR/input).glob('*'))
+        pool.map(partial(process1minOneFile, output, func, refresh), (myPath.DATA_DIR/input).glob('*'))
     
     # for name in tqdm((myPath.DATA_DIR/input).glob('*')):
     #     process1minOneFile(name, output, refresh)
 
 
-def process1minOneFile(output, refresh, name):
+def process1minOneFile(output, func, refresh, name):
     date = str(name).split('\\')[-1].split('.')[0] + '.csv'
     outputfile = myPath.DATA_DIR/output/date
     if outputfile.exists() and not refresh:
@@ -56,7 +56,8 @@ def process1minOneFile(output, refresh, name):
         with zipfile.ZipFile(name) as z:
             for filename in z.namelist():
                 data = pd.read_csv(z.open(filename))
-                row, column_names = process1min(data)
+                # row, column_names = process1min(data)
+                row, column_names = func(data)
                 table.append(row)
         df = pd.DataFrame(data=table, columns=column_names)
         # we save each date to a single file
@@ -223,8 +224,12 @@ def preprocessHalt(inputfile, outputfile):
 
 if __name__ == "__main__":
     # run below to preprocess st dates
-    preprocessST('st_date.csv', 'ST_date.csv')
+    # preprocessST('st_date.csv', 'ST_date.csv')
+    
     # run below to preprocess halt dates
-    preprocessHalt('halt_date.csv', 'halt_date.csv')
+    # preprocessHalt('halt_date.csv', 'halt_date.csv')
+    
     # run below to preprocess 1min raw data
-    error_list = process1minFiles('qishi_1min', '1minProcess')
+    # error_list = process1minFiles('qishi_1min', '1minProcess', process1min)
+    # error_list = process1minFiles('qishi_1min', '1minConsistentVolume', processConsistentVolume)
+    error_list = process1minFiles('qishi_1min', '1minConsistentBuySell', processConsistentBuySell)

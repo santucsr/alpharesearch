@@ -24,3 +24,29 @@ def process1min(data):
     volume_std = data.volume.std()
     turnover_std = data.turover.std()  # typo here?
     return [data.iloc[0].code, open, close, pre_close, low, high, open_std, close_std, total_volume, total_turnover, volume_std, turnover_std], column_names
+
+def processConsistentVolume(data):
+    '''Function to generate the consistent volume feature'''
+    a = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+    columns = ['code'] + [f'consistent_volume_{i}' for i in a]
+    consistent_volumes = []
+    for i in a:
+        consistent_volumes.append((data.volume * ((data.open - data.close).abs()
+                                                < (data.high - data.low).abs() * i) * (data.time <= 1457)).sum())
+    return [data.iloc[0].code] + consistent_volumes, columns
+
+def processConsistentBuySell(data):
+    '''Function to generate the consistent volume feature'''
+    a = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+    columns = ['code'] + [f'consistent_buy_{i}' for i in a] + [f'consistent_sell_{i}' for i in a]
+    consistent_volumes = []
+    for i in a:
+        consistent_volumes.append((data.volume * ((data.open - data.close).abs()
+                                                  < (data.high - data.low).abs() * i) * (data.time <= 1457) * (data.close > data.open)).sum())
+    for i in a:
+        consistent_volumes.append((data.volume * ((data.open - data.close).abs()
+                                                  < (data.high - data.low).abs() * i) * (data.time <= 1457) * (data.close < data.open)).sum())
+    return [data.iloc[0].code] + consistent_volumes, columns
+
+def processBuySellVolume(data):
+    pass

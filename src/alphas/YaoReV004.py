@@ -74,13 +74,14 @@ class YaoReV004():
 
         # adj close
         stocks['adj_close'] = stocks['close'] * stocks['cum_adjf']
+        
+        stocks['fut_ret_1d'] = stocks.groupby(
+            'code').adj_close.apply(self.__compute_future_return)
 
         alpha = stocks.groupby('code').apply(
             self.__compute_var).reset_index().rename(columns={0: 'alpha'})
-        stocks = stocks.reset_index().merge(alpha, on=['time', 'code'], how='inner').set_index('time')
+        stocks = stocks.reset_index().merge(alpha, on=['time', 'code'], how='left').set_index('time')
 
-        stocks['fut_ret_1d'] = stocks.groupby(
-            'code').adj_close.apply(self.__compute_future_return)
 
         # select stocks in the universe
         stocks = stocks.reset_index().merge(population.reset_index(),

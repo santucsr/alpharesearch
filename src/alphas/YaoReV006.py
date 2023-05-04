@@ -1,4 +1,4 @@
-# Reversion 005: residual return reversion wiht market and smb
+# Reversion 006: residual return reversion wiht market and smb
 # r* = r - beta1*r_m - beta2*r_smb - const
 # here we define smb as zz1000 - zz800
 # this is a two factor model
@@ -110,7 +110,7 @@ class YaoReV006():
         alpha = stocks.groupby('code').apply(
             self.__compute_rolling_capm).reset_index().rename(columns={0: 'alpha'})
         stocks = stocks.reset_index().merge(
-            alpha, on=['time', 'code'], how='inner').set_index('time')
+            alpha, on=['time', 'code'], how='left').set_index('time')
 
         stocks['fut_ret_1d'] = stocks.groupby(
             'code').adj_close.apply(self.__compute_future_return)
