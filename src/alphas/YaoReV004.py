@@ -16,13 +16,8 @@ from multiprocessing import Pool
 import warnings
 warnings.filterwarnings('ignore')
 
-#
-
-# Local Library imports
-
 logger = myLogger.Logger(__name__)
 logger.init(console_handler=True)
-
 
 class YaoReV004():
     def __init__(self, args_dict):
