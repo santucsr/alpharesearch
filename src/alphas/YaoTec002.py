@@ -1,4 +1,8 @@
 # Technical 002: stochastic oscillator
+# LL = low of low price, HH = high of high price
+# %K Fast = (C - LL) / (HH - LL)
+# %K Full = Moving average of K Fase
+# %Full %D = moving average of full %K?
 
 from logger import logger as myLogger
 from loader import dataloader
@@ -16,7 +20,6 @@ warnings.filterwarnings('ignore')
 
 logger = myLogger.Logger(__name__)
 logger.init(console_handler=True)
-
 
 class YaoTec002():
     def __init__(self, args_dict):

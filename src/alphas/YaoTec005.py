@@ -1,5 +1,5 @@
 # Technical 005: negative directional indicator
-# +DM = L_{t-1} - L_t if H_t - H_{t-1} < L_{t-1} - L_t and L_t < L_{t-1}
+# -DM = L_{t-1} - L_t if H_t - H_{t-1} < L_{t-1} - L_t and L_t < L_{t-1}
 # NDI = EMA of (-DM/ATR)
 # signal = NDI
 
@@ -20,7 +20,6 @@ warnings.filterwarnings('ignore')
 logger = myLogger.Logger(__name__)
 logger.init(console_handler=True)
 
-
 class YaoTec005():
     def __init__(self, args_dict):
         self.__name = 'YaoTec005'
@@ -32,7 +31,7 @@ class YaoTec005():
         self.__refresh = True if 'refresh' not in args_dict else args_dict['refresh']
 
     def __compute_ndi(self, x):
-        '''function to compute positive directional indicator'''
+        '''function to compute negative directional indicator'''
         deltaH = x.adj_high - x.adj_high.shift(1)
         deltaL = x.adj_low.shift(1) - x.adj_low
         DM = deltaL * (deltaL > deltaH) * (deltaL > 0)

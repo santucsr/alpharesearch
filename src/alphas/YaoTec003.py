@@ -19,7 +19,6 @@ warnings.filterwarnings('ignore')
 logger = myLogger.Logger(__name__)
 logger.init(console_handler=True)
 
-
 class YaoTec003():
     def __init__(self, args_dict):
         self.__name = 'YaoTec003'

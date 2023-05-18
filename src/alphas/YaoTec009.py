@@ -1,6 +1,6 @@
-# Technical 001: double exponential moving average
+# Technical 009: double exponential moving average revisit
 # DEMA = 2 * EMA1 - EMA2, where EMA1 is N-day EMA and EMA2 is N-day EMA of EMA1
-# signal = DEMA / EMA2? signal = DEMA / EMA1? or signal = DEMA / close price?
+# signal = DEMA / EMA1?
 
 from logger import logger as myLogger
 from loader import dataloader
@@ -19,7 +19,6 @@ warnings.filterwarnings('ignore')
 logger = myLogger.Logger(__name__)
 logger.init(console_handler=True)
 
-
 class YaoTec009():
     def __init__(self, args_dict):
         self.__name = 'YaoTec009'
@@ -34,8 +33,6 @@ class YaoTec009():
         '''function to compute DEMA'''
         short = x.shift(1).ewm(span=self.__window,
                                min_periods=self.__window, adjust=False).mean()
-        # long = x.ewm(span=self.__longTerm,
-        #                  min_periods=self.__longTerm, adjust=False).mean()
         long = short.ewm(span=self.__window,
                          min_periods=self.__window, adjust=False).mean()
         return -(2*short - long) / short
