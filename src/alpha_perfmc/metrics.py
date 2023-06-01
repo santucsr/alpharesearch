@@ -27,15 +27,18 @@ def compute_matrics(positions, tab_name, start, end, universe, transform, neutra
     # load benchmark price
     if universe in INDEX_MAPPING:
         universe = INDEX_MAPPING[universe]
+        benchmark = dataloader.loading(
+            tab_name="Index", start=start, end=end, fields=['code', 'name', 'close'])
+        benchmark = benchmark.loc[daily_pnl.index[1]:]
+        daily_pnl['benchmark_ret'] = benchmark.loc[benchmark.name == universe].close.transform(lambda x: np.log(x.shift(-1)) - np.log(x))
     else: # e.g., zz9999
-        universe = '沪深300'
-    benchmark = dataloader.loading(
-        tab_name="Index", start=start, end=end, fields=['code', 'name', 'close'])
-    
-    benchmark = benchmark.loc[daily_pnl.index[1]:]
-    # compute benchmark daily return 
-    daily_pnl['benchmark_ret'] = benchmark.loc[benchmark.name == universe].close.transform(
-        lambda x: np.log(x.shift(-1)) - np.log(x))
+        benchmark = pd.read_csv(myPath.DATA_DIR/'customidx'/f'{universe}_ret.csv')
+        benchmark['time'] = benchmark['time'].astype("string")
+        benchmark.set_index(['time'], inplace=True)
+        benchmark.index = pd.to_datetime(benchmark.index)
+        benchmark = benchmark.loc[daily_pnl.index[1]:]
+        daily_pnl['benchmark_ret'] = benchmark.mkt_weighted_ret
+
     daily_pnl['benchmark_ret'] = daily_pnl['benchmark_ret'].fillna(0)
     # print(daily_pnl)
     

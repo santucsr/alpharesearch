@@ -1,5 +1,5 @@
 # Reversion 013: consistent buy volume
-# mean(consisten_volume / volume, N);consistent_volume = if(|close - open| <= a|high - low| & close - open > 0, min_volume, else 0)
+# mean(consisten_volume / volume, N); consistent_volume = if(|close - open| <= a|high - low| & close - open > 0, min_volume, else 0)
 # the larger the alpha, the more inconsistent volumes would be included
 # the larger the alpha, the more volumes would lie in |close - open| / |high - low| <= a, i.e., the price is more diverged, this could indicate a reversion?
 

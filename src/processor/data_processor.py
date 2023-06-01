@@ -18,7 +18,7 @@ from tqdm.auto import tqdm
 
 # Local Library imports
 from pathmgmt import pathmgmt as myPath
-from .pv_basics import process1min, processConsistentVolume, processConsistentBuySell
+from .pv_basics import process1min, processConsistentVolume, processConsistentBuySell, processBuySellTurnover, processConsistentBuySellTurnover, processConsistentTurnover
 from utils.calendar import CALENDAR
 
 logFormatter = logging.Formatter(
@@ -232,4 +232,7 @@ if __name__ == "__main__":
     # run below to preprocess 1min raw data
     # error_list = process1minFiles('qishi_1min', '1minProcess', process1min)
     # error_list = process1minFiles('qishi_1min', '1minConsistentVolume', processConsistentVolume)
-    error_list = process1minFiles('qishi_1min', '1minConsistentBuySell', processConsistentBuySell)
+    # error_list = process1minFiles('qishi_1min', '1minConsistentBuySell', processConsistentBuySell)
+    # error_list = process1minFiles('qishi_1min', '1minBuySellTurnover', processBuySellTurnover)
+    # error_list = process1minFiles('qishi_1min', '1minConsistentBuySellTurnover', processConsistentBuySellTurnover)
+    error_list = process1minFiles('qishi_1min', '1minConsistentTurnover', processConsistentTurnover)

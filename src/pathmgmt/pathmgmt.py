@@ -16,7 +16,11 @@ DATA_MAPPING = {"PV Basics": '1minProcess',
            "Trading Halt": 'halt_date',
            "ST Stocks": 'ST_date',
            "Consistent Volume": '1minConsistentVolume',
-           "Consistent Buy Sell": '1minConsistentBuySell'
+           "Consistent Buy Sell": '1minConsistentBuySell',
+           "Turnover Buy Sell": '1minBuySellTurnover',
+           "Consistent Turnover": '1minConsistentTurnover',
+           "Consistent Buy Sell Turnover": '1minConsistentBuySellTurnover'
+           
            }
 
 def getfilePath(tab_name, **kwargs):
@@ -24,7 +28,7 @@ def getfilePath(tab_name, **kwargs):
         return DATA_DIR/DATA_MAPPING[tab_name]/kwargs['date'][:4]/(kwargs['date']+'.csv')
     elif tab_name == "Universe":
         return DATA_DIR/DATA_MAPPING[tab_name]/kwargs['indexName']/kwargs['date'][:4]/(kwargs['date']+'.csv')
-    elif tab_name in ["PV Basics", "Consistent Volume", "Consistent Buy Sell"]:
+    elif tab_name in ["PV Basics", "Consistent Volume", "Consistent Buy Sell", "Turnover Buy Sell", "Consistent Turnover", "Consistent Buy Sell Turnover"]:
         return DATA_DIR/DATA_MAPPING[tab_name]/(kwargs['date']+'.csv')
     elif tab_name in ["Trading Halt", "ST Stocks"]:
         return DATA_DIR/'dateProcess'/(DATA_MAPPING[tab_name] + '.csv')

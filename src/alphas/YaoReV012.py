@@ -19,7 +19,6 @@ warnings.filterwarnings('ignore')
 logger = myLogger.Logger(__name__)
 logger.init(console_handler=True)
 
-
 class YaoReV012():
     def __init__(self, args_dict):
         self.__name = 'YaoReV012'
@@ -73,6 +72,8 @@ class YaoReV012():
     def __compute_residuals(self, stocks):
         residuals = stocks.reset_index().groupby('time').apply(
             lambda x: self.__regress(x))
+        # print(stocks)
+        # print(residuals)
         residuals = residuals.reset_index()[['time', 'code', 0]]
         residuals.rename(columns={0: 'resid'}, inplace=True)
         stocks = stocks.reset_index().merge(

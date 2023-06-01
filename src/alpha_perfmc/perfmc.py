@@ -3,8 +3,11 @@ from multiprocessing import Pool
 from alpha_perfmc import calculator
 
 def doCompute(cfg):
-    calcObj = calculator.PnLCalculator(cfg)
-    calcObj.compute_pnl()
+    try:
+        calcObj = calculator.PnLCalculator(cfg)
+        calcObj.compute_pnl()
+    except:
+        pass
 
 def calc(cfg_list):
     '''cfg_list = [args_dict, ...]

@@ -1,4 +1,4 @@
-# Reversion 011: residual return reversion wiht market, smb and consistent volume
+# Reversion 011: residual return reversion with market, smb and consistent volume
 # r* = r - beta1*r_m - beta2*r_smb - beta3*r_cv - const
 # here we define smb as zz1000 - zz800, see Reversion 009 for consistent volume definition
 # this is a three factor model

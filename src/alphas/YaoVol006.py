@@ -1,4 +1,4 @@
-# Volatility 006: residual return std wiht market and smb
+# Volatility 006: residual return std with market and smb
 # r* = r - beta1*r_m - beta2*r_smb - const
 # here we define smb as zz1000 - zz800
 # this is a two factor model

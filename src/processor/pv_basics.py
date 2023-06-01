@@ -50,3 +50,33 @@ def processConsistentBuySell(data):
 
 def processBuySellVolume(data):
     pass
+
+def processBuySellTurnover(data):
+    columns = ['code'] + ['buy_turnover'] + ['sell_turnover']
+    turnovers = []
+    turnovers.append((data.turover * (data.time <= 1457) * (data.close > data.open)).sum())
+    turnovers.append((data.turover * (data.time <= 1457) * (data.close < data.open)).sum())
+    return [data.iloc[0].code] + turnovers, columns
+
+def processConsistentBuySellTurnover(data):
+    '''Function to generate the consistent turnover feature'''
+    a = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+    columns = ['code'] + [f'consistent_buy_trv_{i}' for i in a] + [f'consistent_sell_trv_{i}' for i in a]
+    consistent_turnover = []
+    for i in a:
+        consistent_turnover.append((data.turover * ((data.open - data.close).abs()
+                                                  < (data.high - data.low).abs() * i) * (data.time <= 1457) * (data.close > data.open)).sum())
+    for i in a:
+        consistent_turnover.append((data.turover * ((data.open - data.close).abs()
+                                                  < (data.high - data.low).abs() * i) * (data.time <= 1457) * (data.close < data.open)).sum())
+    return [data.iloc[0].code] + consistent_turnover, columns
+
+def processConsistentTurnover(data):
+    '''Function to generate the consistent volume feature'''
+    a = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+    columns = ['code'] + [f'consistent_turnover_{i}' for i in a]
+    consistent_turnover = []
+    for i in a:
+        consistent_turnover.append((data.turover * ((data.open - data.close).abs()
+                                                  < (data.high - data.low).abs() * i) * (data.time <= 1457)).sum())
+    return [data.iloc[0].code] + consistent_turnover, columns
