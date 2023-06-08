@@ -146,3 +146,30 @@ def stratified_model(positions, tab_name, start, end, universe, transform, neutr
     (myPath.PLOT_DIR/tab_name/'stratified_plot').mkdir(parents=True, exist_ok=True)
     plt.savefig(myPath.PLOT_DIR/tab_name/'stratified_plot'/
                 f'{start}-{end}-{transform}-{neutralize}-holding{holding}days-Stratified.png')
+
+
+def concentration_plot(positions, tab_name, start, end, universe, transform, neutralize, holding):
+    '''concentration is defined as the top 5% long poistion and 5% short position
+    '''
+    alphas_copy = positions[['code', 'name', 'weights', 'fut_ret_1d']].copy().dropna().reset_index()
+    # Calculate the threshold values for each date
+    thresholds = alphas_copy.groupby('time')['weights'].quantile([0.05, 0.95], interpolation='nearest').unstack()
+    
+    alphas_copy = alphas_copy.merge(thresholds.reset_index(), on=['time'], how='left')
+
+    top_short = alphas_copy[alphas_copy['weights'] <= alphas_copy[0.05]]
+    top_long = alphas_copy[alphas_copy['weights'] >= alphas_copy[0.95]]
+
+    top_short_sum = top_short.groupby('time')['weights'].sum()
+    top_long_sum = top_long.groupby('time')['weights'].sum()
+    
+    # Create a new DataFrame to combine the results
+    concentration = pd.DataFrame({'Top 5% short position': top_short_sum, 'Top 5% long position': top_long_sum})
+
+    fig, ax = plt.subplots(1, 1, figsize=(16, 12))
+    fig.autofmt_xdate(rotation=45)
+    ax.plot(concentration[['Top 5% short position', 'Top 5% long position']], label=['Top 5% short position', 'Top 5% long position'])
+    ax.legend()
+    ax.set_title(f'Concentration analysis for {tab_name} from {start} to {end} with holding period {holding} days')
+    (myPath.PLOT_DIR/tab_name/'concentration_plot').mkdir(parents=True, exist_ok=True)
+    plt.savefig(myPath.PLOT_DIR/tab_name/'concentration_plot'/f'{start}-{end}-{transform}-{neutralize}-holding{holding}days-concentration.png', bbox_inches='tight')

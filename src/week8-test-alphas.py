@@ -15,13 +15,13 @@ if __name__ == "__main__":
                                         'universe': 'zz9999',
                                         'refresh': True}))
 
-    alpha_calc.calc(cfg_list)
+    # alpha_calc.calc(cfg_list)
 
     args_dict_list = []
-    for delay in [3, 5, 10, 60]:
-    # for delay in [20]:
-        for holdings in [1, 3, 5, 10, 20, 60]:
-        # for holdings in [20]:
+    # for delay in [3, 5, 10, 60]:
+    for delay in [20]:
+        # for holdings in [1, 3, 5, 10, 20, 60]:
+        for holdings in [20]:
             args_dict_list.append({
                 'table_name': f'alpha.YaoLqd010-{delay}days-zz9999',
                 # 'table_name': f'alpha.YaoReV014-{delay}days-zz9999',

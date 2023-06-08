@@ -1,4 +1,5 @@
 # Standard library import 
+from .pv_basics import process1min, processConsistentVolume, processConsistentBuySell, processBuySellTurnover, processConsistentBuySellTurnover, processConsistentTurnover, processintradayTurnover, processIlliquidity
 from datetime import datetime
 from functools import partial
 import glob
@@ -18,7 +19,6 @@ from tqdm.auto import tqdm
 
 # Local Library imports
 from pathmgmt import pathmgmt as myPath
-from .pv_basics import process1min, processConsistentVolume, processConsistentBuySell, processBuySellTurnover, processConsistentBuySellTurnover, processConsistentTurnover
 from utils.calendar import CALENDAR
 
 logFormatter = logging.Formatter(
@@ -235,4 +235,6 @@ if __name__ == "__main__":
     # error_list = process1minFiles('qishi_1min', '1minConsistentBuySell', processConsistentBuySell)
     # error_list = process1minFiles('qishi_1min', '1minBuySellTurnover', processBuySellTurnover)
     # error_list = process1minFiles('qishi_1min', '1minConsistentBuySellTurnover', processConsistentBuySellTurnover)
-    error_list = process1minFiles('qishi_1min', '1minConsistentTurnover', processConsistentTurnover)
+    # error_list = process1minFiles('qishi_1min', '1minConsistentTurnover', processConsistentTurnover)
+    # error_list = process1minFiles('qishi_1min', 'intradayTurnover', processintradayTurnover)
+    error_list = process1minFiles('qishi_1min', 'Illiquidity', processIlliquidity)

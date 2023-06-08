@@ -59,6 +59,15 @@ class PnLCalculator():
             pass
         logger().debug("computing stratified PnL and recording...Done!")
         
+        logger().debug("computing concentration analysis and recording...")
+        try:
+            metrics.concentration_plot(
+                self.__alpha, self.__name, self.__start, self.__end, self.__universe, self.__transform, self.__neutralize, self.__holding)
+        except:
+            pass
+        logger().debug("computing concentration analysis and recording......Done!")
+
+        
         # daily_pnl, statistics = metrics.compute_matrics(
         #     positions, tab_name, start, end, universe, holding_period)
 
