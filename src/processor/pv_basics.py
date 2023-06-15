@@ -124,3 +124,98 @@ def processIlliquidity(data):
                'illiquidity1_ho_std', 'illiquidity1_ho_range', 'illiquidity1_co_mean', 'illiquidity1_co_std', 'illiquidity1_co_range']
 
     return [data.iloc[0].code] + [illiquidity1_hl_mean, illiquidity1_hl_std, illiquidity1_hl_range, illiquidity1_ho_mean, illiquidity1_ho_std, illiquidity1_ho_range, illiquidity1_co_mean, illiquidity1_co_std, illiquidity1_co_range], columns
+
+
+def processMoneyflow(data):
+    column_names = ['code', 'mega_inflow_volume', 'mega_outflow_volume', 'mega_inflow_trv', 'mega_outflow_trv', 'mega_ret',
+                     'large_inflow_volume', 'large_outflow_volume', 'large_inflow_trv', 'large_outflow_trv', 'large_ret',
+                     'mid_inflow_volume', 'mid_outflow_volume', 'mid_inflow_trv', 'mid_outflow_trv', ',mid_ret', 
+                     'small_inflow_volume', 'small_outflow_volume', 'small_inflow_trv', 'small_outflow_trv', 'small_ret']
+    
+    data['min_ret'] = (np.log(data.close) - np.log(data.open)).replace([np.inf, -np.inf, np.nan], 0)
+
+    mega_inflow_volume = ((data.loc[(data.volume>= 500000) | (data.turover >= 1000000)].volume) * (data.close > data.open)).sum()
+    mega_outflow_volume = ((data.loc[(data.volume>= 500000) | (data.turover >= 1000000)].volume) * (data.close < data.open)).sum()
+    mega_inflow_trv = ((data.loc[(data.volume>= 500000) | (data.turover >= 1000000)].turover) * (data.close > data.open)).sum()
+    mega_outflow_trv = ((data.loc[(data.volume>= 500000) | (data.turover >= 1000000)].turover) * (data.close < data.open)).sum()
+    mega_ret = ((data.loc[(data.volume>= 500000) | (data.turover >= 1000000)].min_ret)).sum()
+    
+    large_subset = data.loc[((5000000 >= data.volume) & (data.volume >= 100000)) | ((1000000 >= data.turover) & (data.turover >= 200000))]
+    large_inflow_volume = (large_subset.volume * (data.close > data.open)).sum()
+    large_outflow_volume = (large_subset.volume * (data.close < data.open)).sum()
+    large_inflow_trv = (large_subset.turover * (data.close > data.open)).sum()
+    large_outflow_trv = (large_subset.turover * (data.close < data.open)).sum()
+    large_ret = large_subset.min_ret.sum()
+    
+    mid_subset = data.loc[((100000 >= data.volume) & (data.volume >= 20000)) | ((200000 >= data.turover) & (data.turover >= 40000))]
+    mid_inflow_volume = (mid_subset.volume * (data.close > data.open)).sum()
+    mid_outflow_volume = (mid_subset.volume * (data.close < data.open)).sum()
+    mid_inflow_trv = (mid_subset.turover * (data.close > data.open)).sum()
+    mid_outflow_trv = (mid_subset.turover * (data.close < data.open)).sum()
+    mid_ret = mid_subset.min_ret.sum()
+
+    small_subset = data.loc[(data.volume <= 20000) | (data.turover <= 40000)]
+    small_inflow_volume = (small_subset.volume * (data.close > data.open)).sum()
+    small_outflow_volume = (small_subset.volume * (data.close < data.open)).sum()
+    small_inflow_trv = (small_subset.turover * (data.close > data.open)).sum()
+    small_outflow_trv = (small_subset.turover * (data.close < data.open)).sum()
+    small_ret = small_subset.min_ret.sum()
+
+    return ([data.iloc[0].code] + [mega_inflow_volume, mega_outflow_volume, mega_inflow_trv, mega_outflow_trv, mega_ret, 
+                                  large_inflow_volume, large_outflow_volume, large_inflow_trv, large_outflow_trv, large_ret,
+                                   mid_inflow_volume, mid_outflow_volume, mid_inflow_trv, mid_outflow_trv, mid_ret,
+                                   small_inflow_volume, small_outflow_volume, small_inflow_trv, small_outflow_trv, small_ret], column_names)
+
+
+def processMoneyflow2(data):
+    column_names = ['code', 'mega_inflow_volume', 'mega_outflow_volume', 'mega_inflow_trv', 'mega_outflow_trv', 'mega_inflow_ret', 'mega_outflow_ret',
+                     'large_inflow_volume', 'large_outflow_volume', 'large_inflow_trv', 'large_outflow_trv', 'large_inflow_ret', 'large_outflow_ret',
+                     'mid_inflow_volume', 'mid_outflow_volume', 'mid_inflow_trv', 'mid_outflow_trv', ',mid_inflow_ret', 'mid_outflow_ret',
+                     'small_inflow_volume', 'small_outflow_volume', 'small_inflow_trv', 'small_outflow_trv', 'small_inflow_ret', 'small_outflow_ret']
+    
+    data['min_inflow_ret'] = (np.log(data.high) - np.log(data.low)) * (data.close > data.open) + (np.log(data.high) - np.log(data.open) + np.log(data.close) - np.log(data.low)) * (data.close <= data.open)
+    data['min_outflow_ret'] = (np.log(data.high) - np.log(data.low)) * (data.close <= data.open) + (np.log(data.open) - np.log(data.low) + np.log(data.high) - np.log(data.close)) * (data.close > data.open)
+    data['min_inflow_ret']  = data['min_inflow_ret'].replace([np.inf, -np.inf, np.nan], 0)
+    data['min_outflow_ret'] = data['min_outflow_ret'].replace([np.inf, -np.inf, np.nan], 0)
+    
+    data['price_range'] = ((data.open - data.low) + (data.high - data.low) + (data.high - data.close)) * (data.close > data.open) + ((data.high - data.open) + (data.high - data.low) + (data.close - data.low)) * (data.close <= data.open)
+    data['inflow_ratio'] = (data.high - data.low) / data.price_range * (data.close > data.open) + (data.high - data.open + data.close - data.low) / data.price_range * (data.close <= data.open) 
+    data['outflow_ratio'] = (data.high - data.low) / data.price_range * (data.close <= data.open) + (data.open - data.low + data.high - data.close) / data.price_range * (data.close > data.open) 
+    data['inflow_ratio']  = data['inflow_ratio'].replace([np.inf, -np.inf, np.nan], 0)
+    data['outflow_ratio'] = data['outflow_ratio'].replace([np.inf, -np.inf, np.nan], 0)
+    
+    mega_inflow_volume = ((data.loc[(data.volume>= 500000) | (data.turover >= 1000000)].volume) * data.inflow_ratio).sum()
+    mega_outflow_volume = ((data.loc[(data.volume>= 500000) | (data.turover >= 1000000)].volume) * data.outflow_ratio).sum()
+    mega_inflow_trv = ((data.loc[(data.volume>= 500000) | (data.turover >= 1000000)].turover) *  data.inflow_ratio).sum()
+    mega_outflow_trv = ((data.loc[(data.volume>= 500000) | (data.turover >= 1000000)].turover) * data.outflow_ratio).sum()
+    mega_inflow_ret = ((data.loc[(data.volume>= 500000) | (data.turover >= 1000000)].min_inflow_ret)).sum()
+    mega_outflow_ret = ((data.loc[(data.volume>= 500000) | (data.turover >= 1000000)].min_outflow_ret)).sum()
+    
+    large_subset = data.loc[((5000000 >= data.volume) & (data.volume >= 100000)) | ((1000000 >= data.turover) & (data.turover >= 200000))]
+    large_inflow_volume = (large_subset.volume * data.inflow_ratio).sum()
+    large_outflow_volume = (large_subset.volume * data.outflow_ratio).sum()
+    large_inflow_trv = (large_subset.turover * data.inflow_ratio).sum()
+    large_outflow_trv = (large_subset.turover * data.outflow_ratio).sum()
+    large_inflow_ret = large_subset.min_inflow_ret.sum()
+    large_outflow_ret = large_subset.min_outflow_ret.sum()
+    
+    mid_subset = data.loc[((100000 >= data.volume) & (data.volume >= 20000)) | ((200000 >= data.turover) & (data.turover >= 40000))]
+    mid_inflow_volume = (mid_subset.volume * data.inflow_ratio).sum()
+    mid_outflow_volume = (mid_subset.volume * data.outflow_ratio).sum()
+    mid_inflow_trv = (mid_subset.turover * data.inflow_ratio).sum()
+    mid_outflow_trv = (mid_subset.turover * data.outflow_ratio).sum()
+    mid_inflow_ret = mid_subset.min_inflow_ret.sum()
+    mid_outflow_ret = mid_subset.min_outflow_ret.sum()
+
+    small_subset = data.loc[(data.volume <= 20000) | (data.turover <= 40000)]
+    small_inflow_volume = (small_subset.volume * data.inflow_ratio).sum()
+    small_outflow_volume = (small_subset.volume * (data.close < data.open)).sum()
+    small_inflow_trv = (small_subset.turover * data.inflow_ratio).sum()
+    small_outflow_trv = (small_subset.turover * (data.close < data.open)).sum()
+    small_inflow_ret = small_subset.min_inflow_ret.sum()
+    small_outflow_ret = small_subset.min_outflow_ret.sum()
+
+    return ([data.iloc[0].code] + [mega_inflow_volume, mega_outflow_volume, mega_inflow_trv, mega_outflow_trv, mega_inflow_ret, mega_outflow_ret,
+                                   large_inflow_volume, large_outflow_volume, large_inflow_trv, large_outflow_trv, large_inflow_ret, large_outflow_ret,
+                                   mid_inflow_volume, mid_outflow_volume, mid_inflow_trv, mid_outflow_trv, mid_inflow_ret, mid_outflow_ret,
+                                   small_inflow_volume, small_outflow_volume, small_inflow_trv, small_outflow_trv, small_inflow_ret, small_outflow_ret], column_names)

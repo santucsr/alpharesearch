@@ -1,5 +1,5 @@
 # Standard library import 
-from .pv_basics import process1min, processConsistentVolume, processConsistentBuySell, processBuySellTurnover, processConsistentBuySellTurnover, processConsistentTurnover, processintradayTurnover, processIlliquidity
+from .pv_basics import process1min, processConsistentVolume, processConsistentBuySell, processBuySellTurnover, processConsistentBuySellTurnover, processConsistentTurnover, processintradayTurnover, processIlliquidity, processMoneyflow, processMoneyflow2
 from datetime import datetime
 from functools import partial
 import glob
@@ -237,4 +237,6 @@ if __name__ == "__main__":
     # error_list = process1minFiles('qishi_1min', '1minConsistentBuySellTurnover', processConsistentBuySellTurnover)
     # error_list = process1minFiles('qishi_1min', '1minConsistentTurnover', processConsistentTurnover)
     # error_list = process1minFiles('qishi_1min', 'intradayTurnover', processintradayTurnover)
-    error_list = process1minFiles('qishi_1min', 'Illiquidity', processIlliquidity)
+    # error_list = process1minFiles('qishi_1min', 'Illiquidity', processIlliquidity)
+    # error_list = process1minFiles('qishi_1min', 'MoneyFlow', processMoneyflow)
+    error_list = process1minFiles('qishi_1min', 'MoneyFlow2', processMoneyflow2)
