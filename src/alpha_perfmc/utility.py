@@ -143,12 +143,10 @@ def alpha_to_weight(alphas, transform_method='None', neutralize_method='None'):
     return alphas
 
 def rolling(alphas, holding=1):
-    rolling = alphas.groupby('code').weights.rolling(
-        holding, min_periods=1).sum().reset_index()
+    rolling = alphas.groupby('code').weights.rolling(holding, min_periods=1).sum().reset_index()
     rolling['weights'] = rolling['weights'] / holding
     rolling.rename(columns={'weights': 'rolling_weights'}, inplace=True)
-    alphas = alphas.reset_index().merge(rolling.reset_index(),
-                                            on=['time', 'code'], how='left').set_index('time')
+    alphas = alphas.reset_index().merge(rolling.reset_index(),on=['time', 'code'], how='left').set_index('time')
     alphas.drop(columns=['weights'], inplace=True)
     alphas.rename(columns={'rolling_weights': 'weights'}, inplace=True)
     return alphas

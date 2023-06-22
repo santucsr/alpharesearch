@@ -44,13 +44,13 @@ if __name__ == "__main__":
 # #
 
     cfg_list = []
-    for k in ['13', '14', '15', '16', '17', '18', '19']:
+    for k in ['01', '02', '03', '04', '05', '06', '07', '08', '09', '12', '14']:
         for delay in [3, 5, 10, 20, 60]:
-            cfg_list.append((f'YaoMfl0{k}', {'start_date': '20180101',
+            cfg_list.append((f'YaoVol0{k}', {'start_date': '20180101',
                                              'end_date': '20201231',
                                              'window': delay,
                                              'universe': 'zz9999',
-                                             'refresh': True}))
+                                             'refresh': False}))
 
     # # alpha_calc.calc(cfg_list)
     # for delay in [3, 5, 10, 20, 60]:
@@ -104,13 +104,14 @@ if __name__ == "__main__":
     alpha_calc.calc(cfg_list)
 
     args_dict_list = []
-    for k in ['13', '14', '15', '16', '17', '18', '19']:
+    for k in ['01', '02', '03', '04', '05', '06', '07', '08', '09', '12', '14']:
         for delay in [3, 5, 10, 20, 60]:
             # for delay in [20]:
-            for holdings in [1, 3, 5, 10, 20, 60]:
+            # for holdings in [1, 3, 5, 10, 20, 60]:
+            for holdings in [1]:
                 # for holdings in [20]:
                 args_dict_list.append({
-                    'table_name': f'alpha.YaoMfl0{k}-{delay}days-zz9999',
+                    'table_name': f'alpha.YaoVol0{k}-{delay}days-zz9999',
                     # 'table_name': f'alpha.YaoReV014-{delay}days-zz9999',
                     'start_date': '20180101',
                     'end_date': '20201231',
